@@ -7,7 +7,7 @@ const navItems: Array<{ href: Route; label: string }> = [
   { href: "/fixtures", label: "Fixtures" },
   { href: "/progress", label: "Progress" },
   { href: "/awards", label: "Awards" },
-  { href: "/admin", label: "Sweepstakes" },
+  { href: "/sweepstakes", label: "Sweepstakes" },
 ];
 
 export function SiteShell({

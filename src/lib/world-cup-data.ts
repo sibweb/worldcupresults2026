@@ -12,7 +12,7 @@ import {
 import { fetchProviderTournamentData } from "@/lib/api/provider";
 
 async function loadSnapshotStore() {
-  return import("@/lib/db/snapshot-store");
+  return import("./db/snapshot-store");
 }
 
 type ProviderMode = "auto" | "live";
@@ -954,22 +954,30 @@ async function fetchAndFinalizeLiveSnapshot() {
 }
 
 export async function syncAndPersistLiveSnapshot() {
+  const useDbCache = shouldUseDbCache();
+
   try {
     const snapshot = await fetchAndFinalizeLiveSnapshot();
 
-    if (shouldUseDbCache()) {
+    if (useDbCache) {
       const { saveSnapshot } = await loadSnapshotStore();
       await saveSnapshot(snapshot);
     }
 
     const message = snapshot.syncMetadata.message ?? "Live snapshot synced and persisted.";
-    const { saveSyncRun } = await loadSnapshotStore();
-    await saveSyncRun({
-      ok: true,
-      mode: "live",
-      provider: snapshot.syncMetadata.providerName,
-      message,
-    });
+    if (useDbCache) {
+      try {
+        const { saveSyncRun } = await loadSnapshotStore();
+        await saveSyncRun({
+          ok: true,
+          mode: "live",
+          provider: snapshot.syncMetadata.providerName,
+          message,
+        });
+      } catch {
+        // Sync should still succeed even if telemetry logging fails.
+      }
+    }
 
     return {
       ok: true as const,
@@ -981,13 +989,19 @@ export async function syncAndPersistLiveSnapshot() {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown sync error";
 
-    const { saveSyncRun } = await loadSnapshotStore();
-    await saveSyncRun({
-      ok: false,
-      mode: "live",
-      provider: process.env.WORLDCUP_API_BASE_URL ?? "worldcup26.ir",
-      message,
-    });
+    if (useDbCache) {
+      try {
+        const { saveSyncRun } = await loadSnapshotStore();
+        await saveSyncRun({
+          ok: false,
+          mode: "live",
+          provider: process.env.WORLDCUP_API_BASE_URL ?? "worldcup26.ir",
+          message,
+        });
+      } catch {
+        // Ignore logging failures.
+      }
+    }
 
     return {
       ok: false as const,
@@ -1187,6 +1201,28 @@ export function getSweepstakeLeaderboard(snapshot: TournamentSnapshot) {
       }
 
       return left.name.localeCompare(right.name);
+    });
+}
+
+export function getSweepstakeOwnership(snapshot: TournamentSnapshot) {
+  return snapshot.assignments
+    .map((assignment) => {
+      const person = snapshot.people.find((item) => item.id === assignment.personId);
+      const team = resolveAssignmentTeam(snapshot, assignment) ?? createFallbackAssignedTeam(assignment);
+
+      return {
+        personName: person?.name ?? "Unassigned",
+        teamName: team.name,
+      };
+    })
+    .sort((left, right) => {
+      const teamCompare = left.teamName.localeCompare(right.teamName);
+
+      if (teamCompare !== 0) {
+        return teamCompare;
+      }
+
+      return left.personName.localeCompare(right.personName);
     });
 }
 

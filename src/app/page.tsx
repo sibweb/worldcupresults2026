@@ -110,7 +110,7 @@ export default async function HomePage() {
               <p className="kicker">Sweepstakes watch</p>
               <h2 className="card-title">Top performers right now</h2>
             </div>
-            <Link href="/admin">Manage assignments</Link>
+            <Link href="/sweepstakes">View sweepstakes</Link>
           </div>
           <ul className="list">
             {leaderboard.map((entry) => {

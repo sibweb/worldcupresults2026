@@ -101,8 +101,8 @@ export default async function TeamPage({
             <strong>What this page covers</strong>
             <p className="muted">Fixtures, UK kickoff times, tournament status, and assignment ownership are kept together so each team can be tracked from group stage to final placement.</p>
           </div>
-          <Link className="button" href="/admin">
-            Update assignment
+          <Link className="button" href="/sweepstakes">
+            View sweepstakes
           </Link>
         </article>
       </section>
