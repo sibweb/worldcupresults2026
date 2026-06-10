@@ -52,12 +52,55 @@ export function AdminAssignmentManager({
     try {
       const parsed = JSON.parse(saved) as Assignment[];
       if (Array.isArray(parsed) && parsed.length > 0) {
-        setAssignments(parsed);
+        const validPeople = new Set(people.map((person) => person.id));
+        const validTeams = new Set(teams.map((team) => team.id));
+
+        const migrated = parsed
+          .filter((assignment) => validPeople.has(assignment.personId))
+          .map((assignment) => {
+            const teamMatch = teams.find((team) => team.id === assignment.teamId);
+
+            if (teamMatch) {
+              return {
+                personId: assignment.personId,
+                teamId: teamMatch.id,
+                teamName: teamMatch.name,
+              } satisfies Assignment;
+            }
+
+            if (assignment.teamName) {
+              const byName = teams.find(
+                (team) => team.name.toLowerCase() === assignment.teamName?.toLowerCase(),
+              );
+
+              if (byName) {
+                return {
+                  personId: assignment.personId,
+                  teamId: byName.id,
+                  teamName: byName.name,
+                } satisfies Assignment;
+              }
+            }
+
+            if (validTeams.has(assignment.teamId)) {
+              return assignment;
+            }
+
+            return undefined;
+          })
+          .filter((assignment): assignment is Assignment => Boolean(assignment));
+
+        if (migrated.length > 0) {
+          setAssignments(migrated);
+        } else {
+          setAssignments(initialAssignments);
+          window.localStorage.removeItem(storageKey);
+        }
       }
     } catch {
       window.localStorage.removeItem(storageKey);
     }
-  }, []);
+  }, [initialAssignments, people, teams]);
 
   useEffect(() => {
     window.localStorage.setItem(storageKey, JSON.stringify(assignments));

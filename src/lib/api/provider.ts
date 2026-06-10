@@ -3,6 +3,8 @@ import { DateTime } from "luxon";
 import { Match, SyncMetadata, Team, TeamRecord } from "@/lib/types";
 
 const REVALIDATE_SECONDS = 15 * 60;
+const FETCH_TIMEOUT_MS = 10000;
+const FETCH_RETRIES = 2;
 
 function getApiBaseUrl() {
   return process.env.WORLDCUP_API_BASE_URL ?? "https://worldcup26.ir";
@@ -78,8 +80,40 @@ export interface SyncResult {
 function slugify(value: string) {
   return value
     .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+const slugOverrides: Record<string, string> = {
+  "democratic-republic-of-the-congo": "congo-dr",
+  "congo-dr": "congo-dr",
+  "cote-d-ivoire": "ivory-coast",
+  "cote-divoire": "ivory-coast",
+  curacao: "curacao",
+  "bosnia-and-herzegovina": "bosnia-herzegovina",
+};
+
+function canonicalTeamSlug(name: string) {
+  const raw = slugify(name);
+  return slugOverrides[raw] ?? raw;
+}
+
+function uniqueSlug(base: string, used: Set<string>) {
+  if (!used.has(base)) {
+    used.add(base);
+    return base;
+  }
+
+  let suffix = 2;
+  while (used.has(`${base}-${suffix}`)) {
+    suffix += 1;
+  }
+
+  const candidate = `${base}-${suffix}`;
+  used.add(candidate);
+  return candidate;
 }
 
 function toNumber(value: string | undefined) {
@@ -181,18 +215,42 @@ function parseMatchStatus(game: ProviderGame): Match["status"] {
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    next: { revalidate: REVALIDATE_SECONDS },
-    headers: {
-      Accept: "application/json",
-    },
-  });
+  let lastError: unknown;
 
-  if (!response.ok) {
-    throw new Error(`Provider request failed for ${path}: ${response.status}`);
+  for (let attempt = 0; attempt <= FETCH_RETRIES; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(`${getApiBaseUrl()}${path}`, {
+        next: { revalidate: REVALIDATE_SECONDS },
+        headers: {
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Provider request failed for ${path}: ${response.status}`);
+      }
+
+      return (await response.json()) as T;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt === FETCH_RETRIES) {
+        break;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 
-  return (await response.json()) as T;
+  throw lastError instanceof Error
+    ? lastError
+    : new Error(`Provider request failed for ${path}`);
 }
 
 export async function fetchProviderTournamentData(): Promise<ProviderTournamentData> {
@@ -204,8 +262,9 @@ export async function fetchProviderTournamentData(): Promise<ProviderTournamentD
   ]);
 
   const stadiumsById = new Map(stadiumPayload.stadiums.map((stadium) => [stadium.id, stadium]));
+  const usedTeamIds = new Set<string>();
   const teams = teamPayload.teams.map<Team>((team) => {
-    const slug = slugify(team.name_en);
+    const slug = uniqueSlug(canonicalTeamSlug(team.name_en), usedTeamIds);
 
     return {
       id: slug,
@@ -286,7 +345,7 @@ export async function fetchProviderTournamentData(): Promise<ProviderTournamentD
       lastSuccessfulSyncUtc: new Date().toISOString(),
       lastAttemptUtc: new Date().toISOString(),
       syncIntervalMinutes: 15,
-      message: "Live teams, fixtures, standings, and venues are coming from the hosted World Cup 2026 community API.",
+      message: `Live teams, fixtures, standings, and venues are coming from the hosted World Cup 2026 community API. Synced ${teams.length} teams and ${matches.length} fixtures.`,
     },
   };
 }

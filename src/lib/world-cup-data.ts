@@ -10,7 +10,10 @@ import {
   TournamentSnapshot,
 } from "@/lib/types";
 import { fetchProviderTournamentData } from "@/lib/api/provider";
-import { getLatestSnapshot, saveSnapshot, saveSyncRun } from "@/lib/db/snapshot-store";
+
+async function loadSnapshotStore() {
+  return import("@/lib/db/snapshot-store");
+}
 
 type ProviderMode = "auto" | "live";
 
@@ -955,10 +958,12 @@ export async function syncAndPersistLiveSnapshot() {
     const snapshot = await fetchAndFinalizeLiveSnapshot();
 
     if (shouldUseDbCache()) {
+      const { saveSnapshot } = await loadSnapshotStore();
       await saveSnapshot(snapshot);
     }
 
     const message = snapshot.syncMetadata.message ?? "Live snapshot synced and persisted.";
+    const { saveSyncRun } = await loadSnapshotStore();
     await saveSyncRun({
       ok: true,
       mode: "live",
@@ -976,6 +981,7 @@ export async function syncAndPersistLiveSnapshot() {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown sync error";
 
+    const { saveSyncRun } = await loadSnapshotStore();
     await saveSyncRun({
       ok: false,
       mode: "live",
@@ -1000,6 +1006,7 @@ export async function getTournamentSnapshot(): Promise<TournamentSnapshot> {
   const maxAge = getCacheMaxAgeMinutes();
 
   if (mode === "auto" && canUseDb) {
+    const { getLatestSnapshot } = await loadSnapshotStore();
     const cached = await getLatestSnapshot(maxAge);
 
     if (cached) {
@@ -1011,12 +1018,14 @@ export async function getTournamentSnapshot(): Promise<TournamentSnapshot> {
     const snapshot = await fetchAndFinalizeLiveSnapshot();
 
     if (canUseDb) {
+      const { saveSnapshot } = await loadSnapshotStore();
       await saveSnapshot(snapshot);
     }
 
     return snapshot;
   } catch {
     if (canUseDb) {
+      const { getLatestSnapshot } = await loadSnapshotStore();
       const cached = await getLatestSnapshot();
 
       if (cached) {
