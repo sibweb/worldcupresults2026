@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS tournament_snapshots (
+  id BIGSERIAL PRIMARY KEY,
+  provider TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  payload JSONB NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sync_runs (
+  id BIGSERIAL PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  ok BOOLEAN NOT NULL,
+  mode TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  message TEXT NOT NULL
+);

@@ -15,6 +15,16 @@ async function loadSnapshotStore() {
   return import("./db/snapshot-store");
 }
 
+export interface SyncHealthSummary {
+  ok: boolean;
+  provider: string;
+  mode: "demo" | "live";
+  message: string;
+  lastSuccessfulSyncUtc: string;
+  lastAttemptUtc: string;
+  source: "snapshot" | "sync-run" | "live";
+}
+
 type ProviderMode = "auto" | "live";
 
 function getProviderMode(): ProviderMode {
@@ -1291,4 +1301,39 @@ export function getStageOrder(snapshot: TournamentSnapshot) {
   return [...new Set(snapshot.matches.map((match) => match.stage))].sort(
     (left, right) => stageRank(left) - stageRank(right),
   );
+}
+
+export async function getSyncHealth(snapshot?: TournamentSnapshot): Promise<SyncHealthSummary> {
+  const currentSnapshot = snapshot ?? (await getTournamentSnapshot());
+
+  try {
+    const { getLatestSyncRun } = await loadSnapshotStore();
+    const latestRun = await getLatestSyncRun();
+
+    if (latestRun) {
+      return {
+        ok: latestRun.ok,
+        provider: latestRun.provider,
+        mode: latestRun.mode,
+        message: latestRun.message,
+        lastSuccessfulSyncUtc: latestRun.ok
+          ? latestRun.created_at
+          : currentSnapshot.syncMetadata.lastSuccessfulSyncUtc,
+        lastAttemptUtc: latestRun.created_at,
+        source: "sync-run",
+      };
+    }
+  } catch {
+    // Fall back to snapshot metadata.
+  }
+
+  return {
+    ok: true,
+    provider: currentSnapshot.syncMetadata.providerName,
+    mode: currentSnapshot.syncMetadata.mode,
+    message: currentSnapshot.syncMetadata.message ?? "Live data is available.",
+    lastSuccessfulSyncUtc: currentSnapshot.syncMetadata.lastSuccessfulSyncUtc,
+    lastAttemptUtc: currentSnapshot.syncMetadata.lastAttemptUtc,
+    source: "snapshot",
+  };
 }

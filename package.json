@@ -7,22 +7,26 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "sync:live": "curl -X POST http://localhost:3000/api/cron/sync"
+    "sync:live": "curl -X POST http://localhost:3000/api/cron/sync",
+    "db:migrate": "tsx scripts/migrate.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.1",
     "luxon": "3.6.1",
     "next": "15.5.19",
+    "pg": "^8.21.0",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
   "devDependencies": {
     "@types/luxon": "^3.7.1",
     "@types/node": "22.15.30",
+    "@types/pg": "^8.20.0",
     "@types/react": "19.1.6",
     "@types/react-dom": "19.1.5",
     "eslint": "9.28.0",
     "eslint-config-next": "15.5.19",
+    "tsx": "^4.22.4",
     "typescript": "5.8.3"
   }
 }

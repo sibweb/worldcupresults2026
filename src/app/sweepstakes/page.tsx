@@ -2,6 +2,7 @@ import { SiteShell } from "@/components/site-shell";
 import {
   getSweepstakeLeaderboard,
   getSweepstakeOwnership,
+  getSyncHealth,
   getTournamentSnapshot,
 } from "@/lib/world-cup-data";
 
@@ -9,6 +10,7 @@ export default async function SweepstakesPage() {
   const snapshot = await getTournamentSnapshot();
   const leaderboard = getSweepstakeLeaderboard(snapshot);
   const ownership = getSweepstakeOwnership(snapshot);
+  const syncHealth = await getSyncHealth(snapshot);
 
   return (
     <SiteShell
@@ -27,6 +29,48 @@ export default async function SweepstakesPage() {
         </div>
       }
     >
+      <section className="grid two" style={{ marginTop: "1.25rem" }}>
+        <article className="card stack">
+          <div>
+            <p className="kicker">Sync health</p>
+            <h2 className="card-title">Production sync status</h2>
+          </div>
+
+          <div className="grid two">
+            <div>
+              <p className="kicker">Status</p>
+              <span className="stat-value">{syncHealth.ok ? "Healthy" : "Needs attention"}</span>
+            </div>
+            <div>
+              <p className="kicker">Source</p>
+              <span className="stat-value">{syncHealth.source}</span>
+            </div>
+            <div>
+              <p className="kicker">Last attempt</p>
+              <span className="stat-value">{new Date(syncHealth.lastAttemptUtc).toLocaleString()}</span>
+            </div>
+            <div>
+              <p className="kicker">Last success</p>
+              <span className="stat-value">{new Date(syncHealth.lastSuccessfulSyncUtc).toLocaleString()}</span>
+            </div>
+          </div>
+
+          <p style={{ margin: 0, color: "var(--muted)" }}>{syncHealth.message}</p>
+        </article>
+
+        <article className="card stack">
+          <div>
+            <p className="kicker">Provider</p>
+            <h2 className="card-title">Live data source</h2>
+          </div>
+
+          <p style={{ margin: 0 }}>Connected to {syncHealth.provider}.</p>
+          <p style={{ margin: 0, color: "var(--muted)" }}>
+            The site reads from the latest synced snapshot, so the public pages stay fast even when the live API is polled on a schedule.
+          </p>
+        </article>
+      </section>
+
       <section className="grid two" style={{ marginTop: "1.25rem" }}>
         <article className="card stack">
           <div>
