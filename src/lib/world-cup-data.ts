@@ -77,7 +77,7 @@ function getThirdPlaceAdvanceCount() {
 
 function shouldUseDbCache() {
   if (process.env.NODE_ENV !== "production") {
-    return readBoolean(process.env.WORLDCUP_USE_DB_CACHE, false);
+    return false;
   }
 
   return readBoolean(process.env.WORLDCUP_USE_DB_CACHE, true);
@@ -493,20 +493,9 @@ export const matches: Match[] = [
   },
 ];
 
-export const goldenBootTable: PlayerStat[] = [
-  { id: "vinicius", name: "Vinicius Jr", teamId: "brazil", goals: 4, assists: 2 },
-  { id: "kane", name: "Harry Kane", teamId: "england", goals: 3, assists: 1 },
-  { id: "olmo", name: "Dani Olmo", teamId: "spain", goals: 3, assists: 2 },
-  { id: "mitoma", name: "Kaoru Mitoma", teamId: "japan", goals: 2, assists: 2 },
-  { id: "saka", name: "Bukayo Saka", teamId: "england", goals: 2, assists: 1 },
-];
+export const goldenBootTable: PlayerStat[] = [];
 
-export const goalkeeperTable: GoalkeeperStat[] = [
-  { id: "alisson", name: "Alisson", teamId: "brazil", cleanSheets: 3, saves: 18, goalsConceded: 4 },
-  { id: "simon", name: "Unai Simon", teamId: "spain", cleanSheets: 2, saves: 14, goalsConceded: 5 },
-  { id: "pickford", name: "Jordan Pickford", teamId: "england", cleanSheets: 2, saves: 16, goalsConceded: 4 },
-  { id: "suzuki", name: "Zion Suzuki", teamId: "japan", cleanSheets: 2, saves: 13, goalsConceded: 5 },
-];
+export const goalkeeperTable: GoalkeeperStat[] = [];
 
 const knockoutOrder: Record<Team["status"], number> = {
   "In tournament": 0,
@@ -1305,6 +1294,18 @@ export function getStageOrder(snapshot: TournamentSnapshot) {
 
 export async function getSyncHealth(snapshot?: TournamentSnapshot): Promise<SyncHealthSummary> {
   const currentSnapshot = snapshot ?? (await getTournamentSnapshot());
+
+  if (!shouldUseDbCache()) {
+    return {
+      ok: true,
+      provider: currentSnapshot.syncMetadata.providerName,
+      mode: currentSnapshot.syncMetadata.mode,
+      message: currentSnapshot.syncMetadata.message ?? "Live data is available.",
+      lastSuccessfulSyncUtc: currentSnapshot.syncMetadata.lastSuccessfulSyncUtc,
+      lastAttemptUtc: currentSnapshot.syncMetadata.lastAttemptUtc,
+      source: "snapshot",
+    };
+  }
 
   try {
     const { getLatestSyncRun } = await loadSnapshotStore();

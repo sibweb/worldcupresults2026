@@ -71,14 +71,14 @@ export default async function HomePage() {
         <article className="card">
           <p className="kicker">Golden Boot</p>
           <h2 className="card-title">{goldenBootLeader?.name ?? "Unavailable"}</h2>
-          <span className="stat-value">{goldenBootLeader?.goals ?? 0} goals</span>
-          <p className="muted">{goldenBootLeader?.teamId ? teamsById[goldenBootLeader.teamId]?.name : "Seeded until live player stats are added"}</p>
+          <span className="stat-value">{goldenBootLeader ? `${goldenBootLeader.goals} goals` : "Awaiting feed"}</span>
+          <p className="muted">{goldenBootLeader?.teamId ? teamsById[goldenBootLeader.teamId]?.name : "Live player-level scoring stats are not available from the provider yet."}</p>
         </article>
         <article className="card">
           <p className="kicker">Best goalkeeper</p>
           <h2 className="card-title">{goalkeeperLeader?.name ?? "Unavailable"}</h2>
-          <span className="stat-value">{goalkeeperLeader?.cleanSheets ?? 0} clean sheets</span>
-          <p className="muted">{goalkeeperLeader?.teamId ? teamsById[goalkeeperLeader.teamId]?.name : "Provider goalkeeper metrics still pending"}</p>
+          <span className="stat-value">{goalkeeperLeader ? `${goalkeeperLeader.cleanSheets} clean sheets` : "Awaiting feed"}</span>
+          <p className="muted">{goalkeeperLeader?.teamId ? teamsById[goalkeeperLeader.teamId]?.name : "Live goalkeeper metrics are not available from the provider yet."}</p>
         </article>
         <article className="card">
           <p className="kicker">Teams tracked</p>
@@ -88,7 +88,7 @@ export default async function HomePage() {
         </article>
       </section>
 
-      <section className="grid two" style={{ marginTop: "1.25rem" }}>
+      <section className="grid two section-block">
         <article className="card stack">
           <div className="spread">
             <div>
@@ -139,7 +139,7 @@ export default async function HomePage() {
         </article>
       </section>
 
-      <section className="grid two" style={{ marginTop: "1.25rem" }}>
+      <section className="grid two section-block">
         <article className="card stack">
           <div className="spread">
             <div>

@@ -14,6 +14,10 @@ export default async function FixturesPage() {
       return accumulator;
     }, {}),
   ).sort(([left], [right]) => left.localeCompare(right));
+  const now = Date.now();
+  const nearestDateKey =
+    groupedMatches.find(([dateKey]) => new Date(`${dateKey}T23:59:59.999Z`).getTime() >= now)?.[0] ??
+    groupedMatches[groupedMatches.length - 1]?.[0];
 
   return (
     <SiteShell
@@ -37,19 +41,23 @@ export default async function FixturesPage() {
         <p className="muted">Kickoff times are rendered in Europe/London so the display stays accurate around daylight saving changes.</p>
       </section>
 
-      <section className="stack">
+      <section className="stack section-block">
         {groupedMatches.map(([dateKey, dayMatches]) => (
-          <article className="card stack" key={dateKey}>
-            <div>
-              <p className="kicker">Matchday</p>
-              <h2 className="card-title">{formatUkDate(dayMatches[0].kickoffUtc)}</h2>
-            </div>
-            <div className="stack">
+          <details className="card matchday" key={dateKey} open={dateKey === nearestDateKey}>
+            <summary className="matchday-summary">
+              <div>
+                <p className="kicker">Matchday</p>
+                <h2 className="card-title">{formatUkDate(dayMatches[0].kickoffUtc)}</h2>
+              </div>
+              <span className="chip">{dayMatches.length} matches</span>
+            </summary>
+
+            <div className="stack matchday-content">
               {dayMatches.map((match) => (
                 <FixtureCard key={match.id} match={match} teamsById={teamsById} />
               ))}
             </div>
-          </article>
+          </details>
         ))}
       </section>
     </SiteShell>

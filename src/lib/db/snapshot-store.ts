@@ -23,7 +23,7 @@ async function getLocalDb() {
   if (!localDbPromise) {
     localDbPromise = (async () => {
       const dir = await getLocalDbDirectory();
-      const db = new PGlite(path.join(dir, "snapshot.pglite"));
+      const db = new PGlite(dir);
 
       await db.exec(`
         CREATE TABLE IF NOT EXISTS tournament_snapshots (

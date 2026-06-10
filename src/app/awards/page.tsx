@@ -11,25 +11,27 @@ export default async function AwardsPage() {
   const scorers = getTopScorers(snapshot);
   const goalkeepers = getTopGoalkeepers(snapshot);
   const teamsById = createTeamLookup(snapshot);
+  const scorerLeader = scorers[0];
+  const goalkeeperLeader = goalkeepers[0];
 
   return (
     <SiteShell
       title="Golden Boot and Best Goalkeeper."
-      intro="Fixtures and results are now live, while awards stay on the seeded fallback table until the provider exposes stable player-level endpoints for goals and goalkeeper metrics."
+      intro="Fixtures and results are live. Player-level goals and goalkeeper metrics will appear automatically once the provider exposes stable award endpoints."
       heroAside={
         <div className="grid two">
           <article className="card card-strong">
             <p className="kicker">Golden Boot leader</p>
-            <span className="stat-value">{scorers[0].name}</span>
+            <span className="stat-value">{scorerLeader?.name ?? "Awaiting feed"}</span>
           </article>
           <article className="card card-strong">
             <p className="kicker">Best goalkeeper leader</p>
-            <span className="stat-value">{goalkeepers[0].name}</span>
+            <span className="stat-value">{goalkeeperLeader?.name ?? "Awaiting feed"}</span>
           </article>
         </div>
       }
     >
-      <section className="grid two" style={{ marginTop: "1.25rem" }}>
+      <section className="grid two section-block">
         <article className="card stack">
           <div>
             <p className="kicker">Top scorers</p>
@@ -45,14 +47,20 @@ export default async function AwardsPage() {
               </tr>
             </thead>
             <tbody>
-              {scorers.map((player) => (
-                <tr key={player.id}>
-                  <td>{player.name}</td>
-                  <td>{teamsById[player.teamId]?.name ?? player.teamId}</td>
-                  <td>{player.goals}</td>
-                  <td>{player.assists}</td>
+              {scorers.length > 0 ? (
+                scorers.map((player) => (
+                  <tr key={player.id}>
+                    <td>{player.name}</td>
+                    <td>{teamsById[player.teamId]?.name ?? player.teamId}</td>
+                    <td>{player.goals}</td>
+                    <td>{player.assists}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4}>No live top-scorer data yet.</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </article>
@@ -72,14 +80,20 @@ export default async function AwardsPage() {
               </tr>
             </thead>
             <tbody>
-              {goalkeepers.map((keeper) => (
-                <tr key={keeper.id}>
-                  <td>{keeper.name}</td>
-                  <td>{teamsById[keeper.teamId]?.name ?? keeper.teamId}</td>
-                  <td>{keeper.cleanSheets}</td>
-                  <td>{keeper.saves}</td>
+              {goalkeepers.length > 0 ? (
+                goalkeepers.map((keeper) => (
+                  <tr key={keeper.id}>
+                    <td>{keeper.name}</td>
+                    <td>{teamsById[keeper.teamId]?.name ?? keeper.teamId}</td>
+                    <td>{keeper.cleanSheets}</td>
+                    <td>{keeper.saves}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={4}>No live goalkeeper metrics yet.</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </article>

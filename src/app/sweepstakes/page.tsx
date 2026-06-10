@@ -29,7 +29,7 @@ export default async function SweepstakesPage() {
         </div>
       }
     >
-      <section className="grid two" style={{ marginTop: "1.25rem" }}>
+      <section className="grid two section-block">
         <article className="card stack">
           <div>
             <p className="kicker">Sync health</p>
@@ -71,33 +71,35 @@ export default async function SweepstakesPage() {
         </article>
       </section>
 
-      <section className="grid two" style={{ marginTop: "1.25rem" }}>
+      <section className="grid two section-block">
         <article className="card stack">
           <div>
             <p className="kicker">Live leaderboard</p>
             <h2 className="card-title">Current sweepstakes table</h2>
           </div>
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Person</th>
-                <th>Team</th>
-                <th>Progress</th>
-                <th>Pts</th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaderboard.map((entry) => (
-                <tr key={`${entry.personId}-${entry.team.id}`}>
-                  <td>{entry.name}</td>
-                  <td>{entry.team.name}</td>
-                  <td>{entry.team.status}</td>
-                  <td>{entry.points}</td>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Person</th>
+                  <th>Team</th>
+                  <th>Progress</th>
+                  <th>Pts</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {leaderboard.map((entry) => (
+                  <tr key={`${entry.personId}-${entry.team.id}`}>
+                    <td>{entry.name}</td>
+                    <td>{entry.team.name}</td>
+                    <td>{entry.team.status}</td>
+                    <td>{entry.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </article>
 
         <article className="card stack">
@@ -106,22 +108,24 @@ export default async function SweepstakesPage() {
             <h2 className="card-title">Team name and person</h2>
           </div>
 
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Team</th>
-                <th>Person</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ownership.map((entry) => (
-                <tr key={`${entry.teamName}-${entry.personName}`}>
-                  <td>{entry.teamName}</td>
-                  <td>{entry.personName}</td>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Team</th>
+                  <th>Person</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {ownership.map((entry) => (
+                  <tr key={`${entry.teamName}-${entry.personName}`}>
+                    <td>{entry.teamName}</td>
+                    <td>{entry.personName}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </article>
       </section>
     </SiteShell>
