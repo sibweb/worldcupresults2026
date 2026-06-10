@@ -70,6 +70,13 @@ function isBuildPhase() {
   return process.env.NEXT_PHASE === "phase-production-build";
 }
 
+function makeId(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export const teams: Team[] = [
   {
     id: "england",
@@ -165,27 +172,66 @@ export const teams: Team[] = [
   },
 ];
 
-export const people: Person[] = [
-  { id: "amy", name: "Amy" },
-  { id: "ben", name: "Ben" },
-  { id: "charlie", name: "Charlie" },
-  { id: "dee", name: "Dee" },
-  { id: "ella", name: "Ella" },
-  { id: "farah", name: "Farah" },
-  { id: "gareth", name: "Gareth" },
-  { id: "harriet", name: "Harriet" },
-];
+const sweepstakeDraw = [
+  { participant: "Sergio Shakira Lopez", team: "Croatia" },
+  { participant: "Kirsten F", team: "Sweden" },
+  { participant: "Matt B", team: "Iraq" },
+  { participant: "Priya P", team: "South Korea" },
+  { participant: "Shyam R", team: "Tunisia" },
+  { participant: "Francesca M", team: "Haiti" },
+  { participant: "Sara H", team: "Curacao" },
+  { participant: "Gary M", team: "Uzbekistan" },
+  { participant: "Dan E", team: "Panama" },
+  { participant: "Will G", team: "South Africa" },
+  { participant: "Prateek G", team: "Scotland" },
+  { participant: "Ash H", team: "Morocco" },
+  { participant: "Anthony W", team: "Belgium" },
+  { participant: "Kirsten F", team: "Saudi Arabia" },
+  { participant: "Eben-Ezer", team: "Algeria" },
+  { participant: "Sarah W", team: "Iran" },
+  { participant: "Jonas A", team: "United States" },
+  { participant: "Anthony Harrold", team: "Qatar" },
+  { participant: "Gemma", team: "Japan" },
+  { participant: "Anthony Harrold", team: "Congo DR" },
+  { participant: "Aman C", team: "Senegal" },
+  { participant: "Simon G", team: "England" },
+  { participant: "Wilfrid", team: "Argentina" },
+  { participant: "Mark P", team: "Cape Verde" },
+  { participant: "Sean C", team: "Netherlands" },
+  { participant: "Mark H", team: "Ivory Coast" },
+  { participant: "Lisa J", team: "Canada" },
+  { participant: "Roberto G", team: "Egypt" },
+  { participant: "Lakshmi N", team: "Mexico" },
+  { participant: "Estela V", team: "Austria" },
+  { participant: "Litia S", team: "Uruguay" },
+  { participant: "Si Bonds", team: "Australia" },
+  { participant: "Mark H", team: "Czech Republic" },
+  { participant: "Holly C", team: "Colombia" },
+  { participant: "Gary M", team: "New Zealand" },
+  { participant: "Shubham", team: "Portugal" },
+  { participant: "Andy E", team: "Norway" },
+  { participant: "Wes", team: "Switzerland" },
+  { participant: "Alex B", team: "Brazil" },
+  { participant: "Ryan F", team: "France" },
+  { participant: "David M", team: "Spain" },
+  { participant: "Shubham", team: "Bosnia-Herzegovina" },
+  { participant: "Wilfrid", team: "Ecuador" },
+  { participant: "Adam G", team: "Ghana" },
+  { participant: "Aijay O", team: "Turkey" },
+  { participant: "Raj L", team: "Jordan" },
+  { participant: "Si Bonds", team: "Germany" },
+  { participant: "Ant H", team: "Paraguay" },
+] as const;
 
-export const assignments: Assignment[] = [
-  { personId: "amy", teamId: "england" },
-  { personId: "ben", teamId: "brazil" },
-  { personId: "charlie", teamId: "spain" },
-  { personId: "dee", teamId: "japan" },
-  { personId: "ella", teamId: "usa" },
-  { personId: "farah", teamId: "morocco" },
-  { personId: "gareth", teamId: "france" },
-  { personId: "harriet", teamId: "argentina" },
-];
+export const people: Person[] = sweepstakeDraw.map((entry, index) => ({
+  id: `${makeId(entry.participant)}-${index + 1}`,
+  name: entry.participant,
+}));
+
+export const assignments: Assignment[] = sweepstakeDraw.map((entry, index) => ({
+  personId: `${makeId(entry.participant)}-${index + 1}`,
+  teamId: makeId(entry.team),
+}));
 
 export const matches: Match[] = [
   {
