@@ -62,8 +62,6 @@ export default async function HomePage() {
         <div className="pill-row">
           <span className="pill">Last sync {formatUkKickoff(summary.lastSync)}</span>
           <span className="pill">{snapshot.teams.length} teams in the current feed</span>
-          <span className="pill">UK kickoff formatting enabled</span>
-          <span className="pill">{snapshot.syncMetadata.providerName}</span>
         </div>
       </section>
 
@@ -159,22 +157,15 @@ export default async function HomePage() {
 
         <article className="card stack">
           <div>
-            <p className="kicker">Team directory</p>
-            <h2 className="card-title">Jump to a team</h2>
+            <p className="kicker">Next match</p>
+            <h2 className="card-title">Upcoming fixtures</h2>
           </div>
-          <div className="grid two">
-            {snapshot.teams.map((team) => (
-              <Link className="fixture" href={`/teams/${team.slug}` as Route} key={team.id}>
-                <div className="spread">
-                  <span className="team-badge">
-                    <span className="team-code">{team.fifaCode}</span>
-                    <span>{team.name}</span>
-                  </span>
-                  <span className="chip done">{team.status}</span>
-                </div>
-                <p className="muted">{team.summary}</p>
-              </Link>
-            ))}
+          <div className="stack">
+            {upcomingFixtures.length > 0 ? (
+              upcomingFixtures.map((match) => <FixtureCard key={match.id} match={match} teamsById={teamsById} />)
+            ) : (
+              <div className="notice">No upcoming fixtures are currently in the active feed.</div>
+            )}
           </div>
         </article>
       </section>

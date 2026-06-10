@@ -8,6 +8,7 @@ const navItems: Array<{ href: Route; label: string }> = [
   { href: "/progress", label: "Progress" },
   { href: "/awards", label: "Awards" },
   { href: "/sweepstakes", label: "Sweepstakes" },
+  { href: "/teams-directory", label: "Teams" },
 ];
 
 export function SiteShell({

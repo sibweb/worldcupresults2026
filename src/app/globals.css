@@ -47,16 +47,17 @@ select {
 .shell {
   width: min(1120px, calc(100% - 1.5rem));
   margin: 0 auto;
-  padding: 1rem 0 4rem;
+  padding: 0.5rem 0 4rem;
 }
 
 .hero {
-  padding: 1.25rem;
+  padding: 1rem;
   border: 1px solid var(--border);
   border-radius: 28px;
   background: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
   backdrop-filter: blur(18px);
   box-shadow: var(--shadow);
+  margin-bottom: 1rem;
 }
 
 .eyebrow {
@@ -119,6 +120,7 @@ select {
 .grid {
   display: grid;
   gap: 1rem;
+  align-items: flex-start;
 }
 
 .grid.two {
@@ -211,6 +213,7 @@ select {
 .matchday {
   padding: 0;
   overflow: hidden;
+  margin-bottom: 0.75rem;
 }
 
 .matchday-summary {
@@ -249,7 +252,7 @@ details[open] > .matchday-summary::after {
 }
 
 .matchday-content {
-  padding: 0 1rem 1rem;
+  padding: 0.75rem 1rem 1rem;
   border-top: 1px solid var(--border);
 }
 
@@ -300,7 +303,7 @@ details[open] > .matchday-summary::after {
 .page-header {
   display: grid;
   gap: 0.5rem;
-  margin: 1.25rem 0 1rem;
+  margin: 0.75rem 0 1rem;
 }
 
 .page-title {
@@ -418,11 +421,11 @@ details[open] > .matchday-summary::after {
 @media (min-width: 700px) {
   .shell {
     width: min(1180px, calc(100% - 2rem));
-    padding-top: 1.25rem;
+    padding-top: 0.5rem;
   }
 
   .hero {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 
   .grid.two {

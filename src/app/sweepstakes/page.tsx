@@ -36,26 +36,27 @@ export default async function SweepstakesPage() {
             <h2 className="card-title">Production sync status</h2>
           </div>
 
-          <div className="grid two">
-            <div>
-              <p className="kicker">Status</p>
-              <span className="stat-value">{syncHealth.ok ? "Healthy" : "Needs attention"}</span>
-            </div>
-            <div>
-              <p className="kicker">Source</p>
-              <span className="stat-value">{syncHealth.source}</span>
-            </div>
-            <div>
-              <p className="kicker">Last attempt</p>
-              <span className="stat-value">{new Date(syncHealth.lastAttemptUtc).toLocaleString()}</span>
-            </div>
-            <div>
-              <p className="kicker">Last success</p>
-              <span className="stat-value">{new Date(syncHealth.lastSuccessfulSyncUtc).toLocaleString()}</span>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.8rem" }}>
+            <span 
+              style={{
+                display: "inline-block",
+                width: "1.2rem",
+                height: "1.2rem",
+                borderRadius: "50%",
+                backgroundColor: syncHealth.ok ? "var(--success)" : "var(--danger)",
+              }}
+            />
+            <span className="stat-value" style={{ margin: 0, fontSize: "1.1rem" }}>
+              {syncHealth.ok ? "Healthy" : "Needs attention"}
+            </span>
           </div>
 
-          <p style={{ margin: 0, color: "var(--muted)" }}>{syncHealth.message}</p>
+          <div style={{ marginTop: "0.8rem" }}>
+            <p className="kicker">Latest attempt</p>
+            <p style={{ margin: "0.3rem 0 0", color: "var(--text)" }}>
+              {new Date(syncHealth.lastAttemptUtc).toLocaleString()}
+            </p>
+          </div>
         </article>
 
         <article className="card stack">

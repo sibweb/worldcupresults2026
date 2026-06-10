@@ -93,23 +93,27 @@ export default async function ProgressPage() {
           }
 
           return (
-            <article className="card stack" key={stage}>
-              <div>
-                <p className="kicker">Bracket</p>
-                <h2 className="card-title">{stage}</h2>
-              </div>
-              {stageMatches.map((match) => (
-                <div className="fixture" key={match.id}>
-                  <div className="spread">
-                    <strong>
-                      {teamsById[match.homeTeamId ?? ""]?.name ?? match.homeTeamName ?? "TBD"} {match.homeScore ?? ""} {match.homeScore !== undefined || match.awayScore !== undefined ? "-" : "vs"} {match.awayScore ?? ""} {teamsById[match.awayTeamId ?? ""]?.name ?? match.awayTeamName ?? "TBD"}
-                    </strong>
-                    <span>{formatUkKickoff(match.kickoffUtc)}</span>
-                  </div>
-                  <p className="muted">{match.venue}{match.notes ? ` • ${match.notes}` : ""}</p>
+            <details className="card matchday" key={stage}>
+              <summary className="matchday-summary">
+                <div>
+                  <h2 className="card-title">{stage}</h2>
                 </div>
-              ))}
-            </article>
+                <span className="chip">{stageMatches.length} matches</span>
+              </summary>
+              <div className="stack matchday-content">
+                {stageMatches.map((match) => (
+                  <div className="fixture" key={match.id}>
+                    <div className="spread">
+                      <strong>
+                        {teamsById[match.homeTeamId ?? ""]?.name ?? match.homeTeamName ?? "TBD"} {match.homeScore ?? ""} {match.homeScore !== undefined || match.awayScore !== undefined ? "-" : "vs"} {match.awayScore ?? ""} {teamsById[match.awayTeamId ?? ""]?.name ?? match.awayTeamName ?? "TBD"}
+                      </strong>
+                      <span>{formatUkKickoff(match.kickoffUtc)}</span>
+                    </div>
+                    <p className="muted">{match.venue}{match.notes ? ` • ${match.notes}` : ""}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           );
         })}
       </section>

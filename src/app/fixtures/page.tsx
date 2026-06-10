@@ -46,7 +46,6 @@ export default async function FixturesPage() {
           <details className="card matchday" key={dateKey} open={dateKey === nearestDateKey}>
             <summary className="matchday-summary">
               <div>
-                <p className="kicker">Matchday</p>
                 <h2 className="card-title">{formatUkDate(dayMatches[0].kickoffUtc)}</h2>
               </div>
               <span className="chip">{dayMatches.length} matches</span>
