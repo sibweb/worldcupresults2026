@@ -70,13 +70,13 @@ export default async function HomePage() {
       <section className="grid three">
         <article className="card">
           <p className="kicker">Golden Boot</p>
-          <h2 className="card-title">{goldenBootLeader?.name ?? "Demo fallback"}</h2>
+          <h2 className="card-title">{goldenBootLeader?.name ?? "Unavailable"}</h2>
           <span className="stat-value">{goldenBootLeader?.goals ?? 0} goals</span>
           <p className="muted">{goldenBootLeader?.teamId ? teamsById[goldenBootLeader.teamId]?.name : "Seeded until live player stats are added"}</p>
         </article>
         <article className="card">
           <p className="kicker">Best goalkeeper</p>
-          <h2 className="card-title">{goalkeeperLeader?.name ?? "Demo fallback"}</h2>
+          <h2 className="card-title">{goalkeeperLeader?.name ?? "Unavailable"}</h2>
           <span className="stat-value">{goalkeeperLeader?.cleanSheets ?? 0} clean sheets</span>
           <p className="muted">{goalkeeperLeader?.teamId ? teamsById[goalkeeperLeader.teamId]?.name : "Provider goalkeeper metrics still pending"}</p>
         </article>

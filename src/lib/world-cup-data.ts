@@ -12,16 +12,16 @@ import {
 import { fetchProviderTournamentData } from "@/lib/api/provider";
 import { getLatestSnapshot, saveSnapshot, saveSyncRun } from "@/lib/db/snapshot-store";
 
-type ProviderMode = "auto" | "live" | "demo";
+type ProviderMode = "auto" | "live";
 
 function getProviderMode(): ProviderMode {
-  const raw = (process.env.WORLDCUP_PROVIDER_MODE ?? "auto").toLowerCase();
+  const raw = (process.env.WORLDCUP_PROVIDER_MODE ?? "live").toLowerCase();
 
-  if (raw === "live" || raw === "demo" || raw === "auto") {
+  if (raw === "live" || raw === "auto") {
     return raw;
   }
 
-  return "auto";
+  return "live";
 }
 
 function readBoolean(value: string | undefined, defaultValue: boolean) {
@@ -427,15 +427,6 @@ export const goalkeeperTable: GoalkeeperStat[] = [
   { id: "pickford", name: "Jordan Pickford", teamId: "england", cleanSheets: 2, saves: 16, goalsConceded: 4 },
   { id: "suzuki", name: "Zion Suzuki", teamId: "japan", cleanSheets: 2, saves: 13, goalsConceded: 5 },
 ];
-
-export const syncMetadata: SyncMetadata = {
-  providerName: "Seeded demo data",
-  mode: "demo",
-  lastSuccessfulSyncUtc: "2026-06-10T08:30:00.000Z",
-  lastAttemptUtc: "2026-06-10T08:30:00.000Z",
-  syncIntervalMinutes: 15,
-  message: "Using local demo data because the live provider is unavailable or not selected.",
-};
 
 const knockoutOrder: Record<Team["status"], number> = {
   "In tournament": 0,
@@ -880,18 +871,6 @@ function finalizeTournamentSnapshot(base: {
   } satisfies TournamentSnapshot;
 }
 
-function createDemoSnapshot() {
-  return finalizeTournamentSnapshot({
-    teams,
-    matches,
-    people,
-    assignments,
-    goldenBootTable,
-    goalkeeperTable,
-    syncMetadata,
-  });
-}
-
 async function fetchAndFinalizeLiveSnapshot() {
   const live = await fetchProviderTournamentData();
 
@@ -950,10 +929,6 @@ export async function syncAndPersistLiveSnapshot() {
 export async function getTournamentSnapshot(): Promise<TournamentSnapshot> {
   const mode = getProviderMode();
 
-  if (mode === "demo") {
-    return createDemoSnapshot();
-  }
-
   const canUseDb = shouldUseDbCache() && !isBuildPhase();
   const maxAge = getCacheMaxAgeMinutes();
 
@@ -988,7 +963,7 @@ export async function getTournamentSnapshot(): Promise<TournamentSnapshot> {
       }
     }
 
-    return createDemoSnapshot();
+    throw new Error("Unable to load live tournament data and no cached snapshot is available.");
   }
 }
 
