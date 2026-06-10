@@ -77,6 +77,68 @@ function makeId(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizeTeamKey(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+const teamAliasMap: Record<string, string[]> = {
+  "southkorea": ["korearepublic", "republicofkorea"],
+  "congodr": ["drcongo", "democraticrepublicofthecongo", "congokinshasa"],
+  "ivorycoast": ["cotedivoire", "costadmarfil"],
+  curacao: ["curaçao"],
+  "capeverde": ["caboverde"],
+  "bosniaherzegovina": ["bosniaandherzegovina"],
+  "unitedstates": ["usa", "unitedstatesofamerica"],
+  "saudiarabia": ["saudiarabia"],
+  "czechrepublic": ["czechia"],
+};
+
+function getTeamLookupKeys(team: Team) {
+  const keys = new Set([
+    normalizeTeamKey(team.id),
+    normalizeTeamKey(team.name),
+    normalizeTeamKey(team.slug),
+    normalizeTeamKey(team.fifaCode),
+  ]);
+
+  for (const [alias, values] of Object.entries(teamAliasMap)) {
+    if (keys.has(alias) || values.some((value) => keys.has(normalizeTeamKey(value)))) {
+      keys.add(alias);
+      for (const value of values) {
+        keys.add(normalizeTeamKey(value));
+      }
+    }
+  }
+
+  return keys;
+}
+
+function resolveAssignmentTeam(snapshot: TournamentSnapshot, assignment: Assignment) {
+  const lookupValue = assignment.teamName ?? assignment.teamId;
+  const targetKey = normalizeTeamKey(lookupValue);
+
+  return snapshot.teams.find((team) => {
+    const keys = getTeamLookupKeys(team);
+    return keys.has(targetKey);
+  });
+}
+
+function createFallbackAssignedTeam(assignment: Assignment): Team {
+  const label = assignment.teamName ?? assignment.teamId;
+
+  return {
+    id: assignment.teamId,
+    name: label,
+    slug: assignment.teamId,
+    fifaCode: assignment.teamId.slice(0, 3).toUpperCase(),
+    group: "",
+    region: "",
+    coach: "TBC",
+    summary: "Sweepstake assignment awaiting live feed match.",
+    status: "In tournament",
+  };
+}
+
 export const teams: Team[] = [
   {
     id: "england",
@@ -231,6 +293,7 @@ export const people: Person[] = sweepstakeDraw.map((entry, index) => ({
 export const assignments: Assignment[] = sweepstakeDraw.map((entry, index) => ({
   personId: `${makeId(entry.participant)}-${index + 1}`,
   teamId: makeId(entry.team),
+  teamName: entry.team,
 }));
 
 export const matches: Match[] = [
@@ -986,13 +1049,24 @@ export function getTeam(snapshot: TournamentSnapshot, teamId: string) {
 }
 
 export function getAssignedPerson(snapshot: TournamentSnapshot, teamId: string) {
-  const assignment = snapshot.assignments.find((item) => item.teamId === teamId);
+  const assignment = snapshot.assignments.find((item) => {
+    const resolvedTeam = resolveAssignmentTeam(snapshot, item);
+
+    return resolvedTeam?.id === teamId;
+  });
 
   if (!assignment) {
     return undefined;
   }
 
   return snapshot.people.find((person) => person.id === assignment.personId);
+}
+
+export function getAssignedPeople(snapshot: TournamentSnapshot, teamId: string) {
+  return snapshot.assignments
+    .filter((assignment) => resolveAssignmentTeam(snapshot, assignment)?.id === teamId)
+    .map((assignment) => snapshot.people.find((person) => person.id === assignment.personId))
+    .filter((person): person is Person => Boolean(person));
 }
 
 export function getMatchesByTeam(snapshot: TournamentSnapshot, teamId: string) {
@@ -1080,11 +1154,7 @@ export function getSweepstakeLeaderboard(snapshot: TournamentSnapshot) {
   return snapshot.assignments
     .map((assignment) => {
       const person = snapshot.people.find((item) => item.id === assignment.personId);
-      const team = snapshot.teams.find((entry) => entry.id === assignment.teamId);
-
-      if (!team) {
-        return undefined;
-      }
+      const team = resolveAssignmentTeam(snapshot, assignment) ?? createFallbackAssignedTeam(assignment);
 
       return {
         personId: assignment.personId,
@@ -1094,7 +1164,6 @@ export function getSweepstakeLeaderboard(snapshot: TournamentSnapshot) {
         progressRank: knockoutOrder[team.status],
       };
     })
-    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
     .sort((left, right) => {
       if (right.points !== left.points) {
         return right.points - left.points;

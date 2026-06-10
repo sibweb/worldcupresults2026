@@ -6,6 +6,14 @@ import { Assignment, Person, Team } from "@/lib/types";
 
 const storageKey = "world-cup-sweepstakes-assignments";
 
+function humanizeTeamId(teamId: string) {
+  return teamId
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 function getStatusPoints(status: Team["status"]) {
   switch (status) {
     case "Winner":
@@ -61,18 +69,13 @@ export function AdminAssignmentManager({
         const person = people.find((entry) => entry.id === assignment.personId);
         const team = teams.find((entry) => entry.id === assignment.teamId);
 
-        if (!person || !team) {
-          return undefined;
-        }
-
         return {
-          personName: person.name,
-          teamName: team.name,
-          status: team.status,
-          points: getStatusPoints(team.status),
+          personName: person?.name ?? "Unassigned",
+          teamName: team?.name ?? humanizeTeamId(assignment.teamId),
+          status: team?.status ?? "Pending feed match",
+          points: getStatusPoints(team?.status ?? "In tournament"),
         };
       })
-      .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry))
       .sort((left, right) => {
         if (right.points !== left.points) {
           return right.points - left.points;
@@ -80,6 +83,20 @@ export function AdminAssignmentManager({
 
         return left.personName.localeCompare(right.personName);
       });
+  }, [assignments, people, teams]);
+
+  const ownershipRows = useMemo(() => {
+    return assignments
+      .map((assignment) => {
+        const person = people.find((entry) => entry.id === assignment.personId);
+        const team = teams.find((entry) => entry.id === assignment.teamId);
+
+        return {
+          personName: person?.name ?? "Unassigned",
+          teamName: team?.name ?? humanizeTeamId(assignment.teamId),
+        };
+      })
+      .sort((left, right) => left.teamName.localeCompare(right.teamName));
   }, [assignments, people, teams]);
 
   const assignedTeamIds = new Set(assignments.map((assignment) => assignment.teamId));
@@ -93,10 +110,9 @@ export function AdminAssignmentManager({
     }
 
     setAssignments((current) => {
-      const withoutPerson = current.filter((assignment) => assignment.personId !== selectedPersonId);
-      const withoutTeam = withoutPerson.filter((assignment) => assignment.teamId !== selectedTeamId);
+      const withoutTeam = current.filter((assignment) => assignment.teamId !== selectedTeamId);
 
-      return [...withoutTeam, { personId: selectedPersonId, teamId: selectedTeamId }];
+      return [...withoutTeam, { personId: selectedPersonId, teamId: selectedTeamId, teamName: teams.find((team) => team.id === selectedTeamId)?.name }];
     });
   }
 
@@ -171,11 +187,33 @@ export function AdminAssignmentManager({
             </thead>
             <tbody>
               {leaderboard.map((entry) => (
-                <tr key={entry.personName}>
+                <tr key={`${entry.teamName}-${entry.personName}`}>
                   <td>{entry.personName}</td>
                   <td>{entry.teamName}</td>
                   <td>{entry.status}</td>
                   <td>{entry.points}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div>
+            <p className="kicker">Ownership view</p>
+            <h2 className="card-title">Team name and person</h2>
+          </div>
+
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Team</th>
+                <th>Person</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ownershipRows.map((entry) => (
+                <tr key={`${entry.teamName}-${entry.personName}`}>
+                  <td>{entry.teamName}</td>
+                  <td>{entry.personName}</td>
                 </tr>
               ))}
             </tbody>

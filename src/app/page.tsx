@@ -6,7 +6,7 @@ import { SiteShell } from "@/components/site-shell";
 import { formatUkKickoff } from "@/lib/format";
 import {
   createTeamLookup,
-  getAssignedPerson,
+  getAssignedPeople,
   getDashboardSummary,
   getRecentResults,
   getSweepstakeLeaderboard,
@@ -114,7 +114,7 @@ export default async function HomePage() {
           </div>
           <ul className="list">
             {leaderboard.map((entry) => {
-              const owner = getAssignedPerson(snapshot, entry.team.id);
+              const owners = getAssignedPeople(snapshot, entry.team.id);
 
               return (
                 <li className="fixture" key={entry.personId}>
@@ -129,7 +129,7 @@ export default async function HomePage() {
                     </div>
                     <p className="muted">
                       {entry.team.status}
-                      {owner ? ` • managed by ${owner.name}` : ""}
+                      {owners.length > 0 ? ` • managed by ${owners.map((person) => person.name).join(", ")}` : ""}
                     </p>
                   </div>
                 </li>

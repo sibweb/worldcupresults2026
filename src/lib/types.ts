@@ -33,6 +33,7 @@ export interface Person {
 export interface Assignment {
   personId: string;
   teamId: string;
+  teamName?: string;
 }
 
 export interface Match {

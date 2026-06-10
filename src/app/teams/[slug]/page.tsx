@@ -6,7 +6,7 @@ import { SiteShell } from "@/components/site-shell";
 import { formatUkKickoff } from "@/lib/format";
 import {
   createTeamLookup,
-  getAssignedPerson,
+  getAssignedPeople,
   getMatchesByTeam,
   getTeamBySlug,
   getTournamentSnapshot,
@@ -32,7 +32,7 @@ export default async function TeamPage({
 
   const teamsById = createTeamLookup(snapshot);
   const matches = getMatchesByTeam(snapshot, team.id).sort((left, right) => left.kickoffUtc.localeCompare(right.kickoffUtc));
-  const assignedPerson = getAssignedPerson(snapshot, team.id);
+  const assignedPeople = getAssignedPeople(snapshot, team.id);
   const { winner, runnerUp } = getWinnerAndRunnerUp(snapshot);
   const placement = winner?.id === team.id ? "Tournament winner" : runnerUp?.id === team.id ? "Runner-up" : team.status;
 
@@ -44,7 +44,7 @@ export default async function TeamPage({
         <div className="grid two">
           <article className="card card-strong">
             <p className="kicker">Assigned to</p>
-            <span className="stat-value">{assignedPerson?.name ?? "Open"}</span>
+            <span className="stat-value">{assignedPeople.length > 0 ? assignedPeople.map((person) => person.name).join(", ") : "Open"}</span>
           </article>
           <article className="card card-strong">
             <p className="kicker">Tournament status</p>
@@ -93,8 +93,8 @@ export default async function TeamPage({
             <h2 className="card-title">Tracking notes</h2>
           </div>
           <div className="notice">
-            {assignedPerson
-              ? `${assignedPerson.name} currently holds ${team.name} in the sweepstakes.`
+            {assignedPeople.length > 0
+              ? `${assignedPeople.map((person) => person.name).join(", ")} currently holds ${team.name} in the sweepstakes.`
               : `${team.name} is currently unassigned in the sweepstakes draw.`}
           </div>
           <div className="fixture">
