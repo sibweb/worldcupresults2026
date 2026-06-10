@@ -1,4 +1,5 @@
 import { mkdir } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 
 import { PGlite } from "@electric-sql/pglite";
@@ -11,7 +12,9 @@ async function getDbDirectory() {
   const dbPath = process.env.WORLDCUP_DB_PATH ?? ".worldcup-db";
   const absolute = path.isAbsolute(dbPath)
     ? dbPath
-    : path.join(process.cwd(), dbPath);
+    : process.env.VERCEL
+      ? path.join(os.tmpdir(), dbPath)
+      : path.join(process.cwd(), dbPath);
 
   await mkdir(absolute, { recursive: true });
 
