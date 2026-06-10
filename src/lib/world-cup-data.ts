@@ -63,6 +63,10 @@ function getThirdPlaceAdvanceCount() {
 }
 
 function shouldUseDbCache() {
+  if (process.env.NODE_ENV !== "production") {
+    return readBoolean(process.env.WORLDCUP_USE_DB_CACHE, false);
+  }
+
   return readBoolean(process.env.WORLDCUP_USE_DB_CACHE, true);
 }
 
