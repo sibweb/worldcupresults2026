@@ -7,6 +7,18 @@ import { PGlite } from "@electric-sql/pglite";
 import { TournamentSnapshot } from "@/lib/types";
 
 let dbPromise: Promise<PGlite> | undefined;
+let memorySnapshots: Array<{ payload: TournamentSnapshot; created_at: string }> = [];
+let memorySyncRuns: Array<{
+  ok: boolean;
+  mode: "demo" | "live";
+  provider: string;
+  message: string;
+  created_at: string;
+}> = [];
+
+function shouldUseMemoryStore() {
+  return Boolean(process.env.VERCEL);
+}
 
 async function getDbDirectory() {
   const dbPath = process.env.WORLDCUP_DB_PATH ?? ".worldcup-db";
@@ -21,7 +33,30 @@ async function getDbDirectory() {
   return absolute;
 }
 
+function appendMemorySnapshot(snapshot: TournamentSnapshot) {
+  memorySnapshots.push({
+    payload: snapshot,
+    created_at: new Date().toISOString(),
+  });
+}
+
+function appendMemorySyncRun(input: {
+  ok: boolean;
+  mode: "demo" | "live";
+  provider: string;
+  message: string;
+}) {
+  memorySyncRuns.push({
+    ...input,
+    created_at: new Date().toISOString(),
+  });
+}
+
 async function getDb() {
+  if (shouldUseMemoryStore()) {
+    return undefined;
+  }
+
   if (!dbPromise) {
     dbPromise = (async () => {
       const dir = await getDbDirectory();
@@ -56,7 +91,17 @@ async function getDb() {
 }
 
 export async function saveSnapshot(snapshot: TournamentSnapshot) {
+  if (shouldUseMemoryStore()) {
+    appendMemorySnapshot(snapshot);
+    return;
+  }
+
   const db = await getDb();
+
+  if (!db) {
+    appendMemorySnapshot(snapshot);
+    return;
+  }
 
   await db.query(
     `
@@ -73,7 +118,17 @@ export async function saveSyncRun(input: {
   provider: string;
   message: string;
 }) {
+  if (shouldUseMemoryStore()) {
+    appendMemorySyncRun(input);
+    return;
+  }
+
   const db = await getDb();
+
+  if (!db) {
+    appendMemorySyncRun(input);
+    return;
+  }
 
   await db.query(
     `
@@ -85,7 +140,30 @@ export async function saveSyncRun(input: {
 }
 
 export async function getLatestSnapshot(maxAgeMinutes?: number) {
+  if (shouldUseMemoryStore()) {
+    const latest = memorySnapshots[memorySnapshots.length - 1];
+
+    if (!latest) {
+      return undefined;
+    }
+
+    if (maxAgeMinutes && maxAgeMinutes > 0) {
+      const cutoff = Date.now() - maxAgeMinutes * 60 * 1000;
+      const createdAtMs = new Date(latest.created_at).getTime();
+
+      if (createdAtMs < cutoff) {
+        return undefined;
+      }
+    }
+
+    return latest.payload;
+  }
+
   const db = await getDb();
+
+  if (!db) {
+    return undefined;
+  }
 
   const rows = await db.query<{
     payload: TournamentSnapshot;
