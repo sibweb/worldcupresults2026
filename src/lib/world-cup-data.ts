@@ -55,6 +55,10 @@ function readBoolean(value: string | undefined, defaultValue: boolean) {
   return defaultValue;
 }
 
+function hasDatabaseConnectionString() {
+  return Boolean(process.env.POSTGRES_URL || process.env.DATABASE_URL);
+}
+
 function getCacheMaxAgeMinutes() {
   const parsed = Number.parseInt(process.env.WORLDCUP_CACHE_MAX_AGE_MINUTES ?? "30", 10);
 
@@ -77,6 +81,10 @@ function getThirdPlaceAdvanceCount() {
 
 function shouldUseDbCache() {
   if (process.env.NODE_ENV !== "production") {
+    return false;
+  }
+
+  if (!hasDatabaseConnectionString()) {
     return false;
   }
 
