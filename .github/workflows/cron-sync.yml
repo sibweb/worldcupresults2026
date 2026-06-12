@@ -19,11 +19,12 @@ jobs:
             exit 1
           fi
 
-          if [ -z "$CRON_SECRET" ]; then
-            echo "CRON_SECRET secret is missing"
-            exit 1
+          auth_args=()
+          if [ -n "$CRON_SECRET" ]; then
+            auth_args=(-H "Authorization: Bearer $CRON_SECRET")
           fi
 
           curl --fail --show-error --silent \
-            -H "Authorization: Bearer $CRON_SECRET" \
+            -X POST \
+            "${auth_args[@]}" \
             "$CRON_SYNC_URL"
