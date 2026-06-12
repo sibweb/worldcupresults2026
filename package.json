@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.1",
+    "@vercel/analytics": "^2.0.1",
     "luxon": "3.6.1",
     "next": "15.5.19",
     "pg": "^8.21.0",
