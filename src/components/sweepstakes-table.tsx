@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-type SweepstakesRow = {
+export type SweepstakesRow = {
   id: string;
   personName: string;
   teamName: string;

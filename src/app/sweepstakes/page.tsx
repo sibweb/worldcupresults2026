@@ -1,5 +1,6 @@
 import { SiteShell } from "@/components/site-shell";
 import { SweepstakesTable } from "@/components/sweepstakes-table";
+import type { SweepstakesRow } from "@/components/sweepstakes-table";
 import {
   getSweepstakeLeaderboard,
   getSyncHealth,
@@ -10,10 +11,10 @@ export default async function SweepstakesPage() {
   const snapshot = await getTournamentSnapshot();
   const leaderboard = getSweepstakeLeaderboard(snapshot);
   const syncHealth = await getSyncHealth(snapshot);
-  const rows = leaderboard.map((entry) => {
+  const rows: SweepstakesRow[] = leaderboard.map((entry) => {
     const normalizedStatus = entry.team.status.toLowerCase();
     const inTournament = !normalizedStatus.includes("eliminated") && !normalizedStatus.includes("out");
-    const risk = inTournament
+    const risk: SweepstakesRow["risk"] = inTournament
       ? normalizedStatus.includes("winner") || normalizedStatus.includes("runner-up")
         ? "safe"
         : "at-risk"
